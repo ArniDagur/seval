@@ -18,7 +18,7 @@ class ValidationError extends Error {
   }
 }
 
-function isNodeExpression(node: Node): node is Expression  {
+function isNodeExpression(node: Node): node is Expression {
   return [
     "ThisExpression",
     "ArrayExpression",
@@ -93,41 +93,16 @@ function checkExpressionSafe(
   } else if (node.type === "ArrayExpression") {
     for (const elem of node.elements) {
       if (elem == null || !isNodeExpression(elem)) {
-        throw new ValidationError("Cannot construct array from non-expressions", options);
+        throw new ValidationError(
+          "Cannot construct array from non-expressions",
+          options
+        );
       }
       checkExpressionSafe(elem, declaredVars, options);
     }
     return;
   }
   throw new ValidationError(`Forbidden expression type: ${node.type}`, options);
-}
-
-function isNodeStatement(node: Node): node is Statement {
-  return [
-    "ExpressionStatement",
-    "BlockStatement",
-    "StaticBlock",
-    "EmptyStatement",
-    "DebuggerStatement",
-    "WithStatement",
-    "ReturnStatement",
-    "LabeledStatement",
-    "BreakStatement",
-    "ContinueStatement",
-    "IfStatement",
-    "SwitchStatement",
-    "ThrowStatement",
-    "TryStatement",
-    "WhileStatement",
-    "DoWhileStatement",
-    "ForStatement",
-    "ForInStatement",
-    "ForOfStatement",
-    "Declaration",
-    "FunctionDeclaration",
-    "VariableDeclaration",
-    "ClassDeclaration",
-  ].includes(node.type);
 }
 
 function checkStatementSafe(
@@ -185,21 +160,6 @@ function checkStatementSafe(
   throw new ValidationError(`Forbidden statement type: ${stmt.type}`, options);
 }
 
-function checkNodeSafe(
-  node: Node,
-  declaredVars: Set<string>,
-  options: ValidationOptions
-): void {
-  if (isNodeExpression(node)) {
-    checkExpressionSafe(node, declaredVars, options);
-    return;
-  } else if (isNodeStatement(node)) {
-    checkStatementSafe(node, declaredVars, options);
-    return;
-  }
-  throw new ValidationError(`Forbidden node type: ${node.type}`, options);
-}
-
 class SafeCode {
   private compiled: Function;
 
@@ -231,7 +191,7 @@ class SafeCode {
     // SAFETY: We checked the node type above
     const unsafeFuncDecl = unsafeProgram
       .body[0] as unknown as FunctionDeclaration;
-    checkNodeSafe(unsafeFuncDecl.body, new Set(), options);
+    checkStatementSafe(unsafeFuncDecl.body, new Set(), options);
 
     // The parsing step should have already rejected any accesses to global
     // variables from within the given function. Sandboxing is just a
