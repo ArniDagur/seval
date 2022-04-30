@@ -1,0 +1,26 @@
+{
+  "name": "seval",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/index.js",
+  "scripts": {
+    "test": "env TS_NODE_COMPILER_OPTIONS='{\"module\": \"commonjs\" }' ./node_modules/mocha/bin/mocha --require ts-node/register tests/**/*.ts",
+    "coverage": "env TS_NODE_COMPILER_OPTIONS='{\"module\": \"commonjs\" }' c8 -r html ./node_modules/mocha/bin/mocha --require ts-node/register tests/**/*.ts"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/mocha": "^9.1.1",
+    "c8": "^7.11.2",
+    "mocha": "^9.2.2",
+    "ts-node": "^10.7.0",
+    "typescript": "^4.6.4"
+  },
+  "dependencies": {
+    "@types/acorn": "^4.0.6",
+    "@types/estree": "^0.0.51",
+    "acorn": "^8.7.1",
+    "acorn-walk": "^8.2.0"
+  }
+}
