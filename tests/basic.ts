@@ -110,4 +110,8 @@ describe("Sevaluator", function () {
       new Sevaluator("[1, ...[1,2,3]]");
     });
   });
+  it("Ternary operator", function () {
+    assert.equal(new Sevaluator("return true ? 1 : 2;").run([]), 1);
+    assert.equal(new Sevaluator("return false ? 1 : 2;").run([]), 2);
+  });
 });

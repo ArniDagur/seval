@@ -104,6 +104,11 @@ function checkExpressionSafe(
   } else if (node.type === "UpdateExpression") {
     checkExpressionSafe(node.argument, declaredVars, options);
     return;
+  } else if (node.type === "ConditionalExpression") {
+    checkExpressionSafe(node.test, declaredVars, options);
+    checkExpressionSafe(node.alternate, declaredVars, options);
+    checkExpressionSafe(node.consequent, declaredVars, options);
+    return;
   }
   throw new ValidationError(`Forbidden expression type: ${node.type}`, options);
 }
