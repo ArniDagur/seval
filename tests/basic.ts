@@ -25,6 +25,14 @@ describe("Sevaluator", function () {
         `
       );
     });
+    assert.throws(() => {
+      new Sevaluator(
+        `
+        for (let i = 0; i < 100; i++) {}
+        return i;
+        `
+      );
+    });
     assert.equal(
       new Sevaluator(
         `
@@ -65,6 +73,22 @@ describe("Sevaluator", function () {
     assert.throws(() => {
       new Sevaluator("for (;;) {}");
     });
+    assert.equal(
+      new Sevaluator(
+        "let sum = 0; for (let i = 0; i < 100; i++) { sum += i; }; return sum;",
+        { allowLoops: true }
+      ).run([]),
+      4950
+    );
+    assert.equal(
+      new Sevaluator("for (2;false;) { return 1; }; return 2;", {
+        allowLoops: true,
+      }).run([]),
+      2
+    );
+    // The following should not throw
+    new Sevaluator("while (true) {}", { allowLoops: true });
+    new Sevaluator("for (;;) {}", { allowLoops: true });
   });
   it("Non-identifier assignments and declarations are forbidden", function () {
     // Not inherently insecure, but adds complexity to the library

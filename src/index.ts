@@ -101,6 +101,9 @@ function checkExpressionSafe(
       checkExpressionSafe(elem, declaredVars, options);
     }
     return;
+  } else if (node.type === "UpdateExpression") {
+    checkExpressionSafe(node.argument, declaredVars, options);
+    return;
   }
   throw new ValidationError(`Forbidden expression type: ${node.type}`, options);
 }
@@ -120,12 +123,12 @@ function checkStatementSafe(
     }
     return;
   } else if (stmt.type === "BlockStatement") {
-    const blockVars: Set<string> = new Set();
+    const newDeclaredVars: Set<string> = new Set();
     for (const name of declaredVars) {
-      blockVars.add(name);
+      newDeclaredVars.add(name);
     }
     for (const subStmt of stmt.body) {
-      checkStatementSafe(subStmt, blockVars, options);
+      checkStatementSafe(subStmt, newDeclaredVars, options);
     }
     return;
   } else if (stmt.type === "VariableDeclaration") {
@@ -155,6 +158,33 @@ function checkStatementSafe(
     return;
   } else if (stmt.type === "ExpressionStatement") {
     checkExpressionSafe(stmt.expression, declaredVars, options);
+    return;
+  } else if (
+    options.allowLoops &&
+    (stmt.type === "WhileStatement" || stmt.type === "DoWhileStatement")
+  ) {
+    checkExpressionSafe(stmt.test, declaredVars, options);
+    checkStatementSafe(stmt.body, declaredVars, options);
+    return;
+  } else if (options.allowLoops && stmt.type === "ForStatement") {
+    const newDeclaredVars: Set<string> = new Set();
+    for (const name of declaredVars) {
+      newDeclaredVars.add(name);
+    }
+    if (stmt.init != null) {
+      if (stmt.init.type === "VariableDeclaration") {
+        checkStatementSafe(stmt.init, newDeclaredVars, options);
+      } else {
+        checkExpressionSafe(stmt.init, newDeclaredVars, options);
+      }
+    }
+    if (stmt.test != null) {
+      checkExpressionSafe(stmt.test, newDeclaredVars, options);
+    }
+    if (stmt.update != null) {
+      checkExpressionSafe(stmt.update, newDeclaredVars, options);
+    }
+    checkStatementSafe(stmt.body, newDeclaredVars, options);
     return;
   }
   throw new ValidationError(`Forbidden statement type: ${stmt.type}`, options);
