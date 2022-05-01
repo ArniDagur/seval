@@ -109,6 +109,20 @@ function checkExpressionSafe(
     checkExpressionSafe(node.alternate, declaredVars, options);
     checkExpressionSafe(node.consequent, declaredVars, options);
     return;
+  } else if (node.type === "MemberExpression") {
+    // Most member expressions are dangerous. We whitelist accesses to
+    // `arguments.length` and `arguments[n]` where `n` is an integer literal.
+    if (
+      node.object.type === "Identifier" &&
+      node.object.name === "arguments" &&
+      ((node.property.type === "Identifier" &&
+        node.property.name === "length") ||
+        (node.property.type === "Literal" &&
+          Number.isInteger(node.property.value)))
+    ) {
+      return;
+    }
+    throw new ValidationError(`Forbidden member expression`, options);
   }
   throw new ValidationError(`Forbidden expression type: ${node.type}`, options);
 }
@@ -152,6 +166,9 @@ function checkStatementSafe(
       }
       if (decl.init != null) {
         checkExpressionSafe(decl.init, declaredVars, options);
+      }
+      if (id.name === "arguments") {
+        throw new ValidationError("Cannot re-declare 'arguments'", options);
       }
       declaredVars.add(id.name);
     }

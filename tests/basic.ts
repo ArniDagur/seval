@@ -114,4 +114,27 @@ describe("Sevaluator", function () {
     assert.equal(new Sevaluator("return true ? 1 : 2;").run([]), 1);
     assert.equal(new Sevaluator("return false ? 1 : 2;").run([]), 2);
   });
+  it("Access to 'arguments' identifier", function () {
+    assert.equal(new Sevaluator("return arguments.length;").run([]), 0);
+    assert.equal(new Sevaluator("return arguments.length;").run([1]), 1);
+    assert.equal(new Sevaluator("return arguments.length;").run([1, 1]), 2);
+    assert.equal(
+      new Sevaluator("return arguments[1];").run(["a", "b", "c"]),
+      "b"
+    );
+    assert.throws(() => {
+      new Sevaluator("return arguments[1.1];");
+    });
+    assert.throws(() => {
+      new Sevaluator("return arguments['1'];");
+    });
+  });
+  it("Cannot re-declare arguments identifier", function() {
+    assert.throws(() => {
+      new Sevaluator("let arguments = 1;");
+    });
+    assert.throws(() => {
+      new Sevaluator("const arguments = 1;");
+    });
+  });
 });
